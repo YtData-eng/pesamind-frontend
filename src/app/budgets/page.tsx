@@ -1,147 +1,87 @@
-const express = require('express');
-const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const pool = require('../config/database');
-const { authenticate } = require('../middleware/auth');
-const { generateBudgetRecommendations } = require('../services/aiService');
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-// Get all budgets with spending status
-router.get('/', authenticate, async (req, res) => {
-  const { month, year } = req.query;
-  const m = parseInt(month) || new Date().getMonth() + 1;
-  const y = parseInt(year) || new Date().getFullYear();
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const CATEGORIES = ['food_dining','transport','utilities','shopping','airtime_data','entertainment','healthcare','education','savings','business','other'];
 
-  try {
-    const result = await pool.query(
-      `SELECT b.id, b.category, b.amount as budget_amount, b.period, b.month, b.year,
-              COALESCE(s.spent, 0) as spent,
-              ROUND(COALESCE(s.spent, 0) / b.amount * 100, 1) as usage_percent
-       FROM budgets b
-       LEFT JOIN (
-         SELECT category, SUM(amount) as spent
-         FROM transactions
-         WHERE user_id = $1 AND type = 'debit'
-           AND EXTRACT(MONTH FROM date) = $2
-           AND EXTRACT(YEAR FROM date) = $3
-         GROUP BY category
-       ) s ON s.category = b.category
-       WHERE b.user_id = $1 AND b.month = $2 AND b.year = $3
-       ORDER BY usage_percent DESC`,
-      [req.user.id, m, y]
-    );
+export default function Budgets() {
+  const router = useRouter();
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [form, setForm] = useState({ category: CATEGORIES[0], amount: '', month: new Date().getMonth() + 1, year: new Date().getFullYear() });
+  const [saving, setSaving] = useState(false);
 
-    // Flag over-budget and near-budget (>80%) categories
-    const budgets = result.rows.map(b => ({
-      ...b,
-      status: b.usage_percent >= 100 ? 'over' : b.usage_percent >= 80 ? 'warning' : 'ok',
-      remaining: Math.max(0, b.budget_amount - b.spent)
-    }));
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) { router.push('/login'); return; }
+    fetchBudgets(token);
+  }, []);
 
-    res.json({ budgets, month: m, year: y });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch budgets' });
-  }
-});
+  const fetchBudgets = async (token: string) => {
+    try {
+      const res = await fetch(`${API}/budgets?month=${new Date().getMonth()+1}&year=${new Date().getFullYear()}`, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      setBudgets(json.budgets || []);
+    } catch (e) { console.error(e); }
+  };
 
-// Set/update a budget
-router.post('/', authenticate, [
-  body('category').trim().notEmpty(),
-  body('amount').isFloat({ min: 1 }),
-  body('month').isInt({ min: 1, max: 12 }),
-  body('year').isInt({ min: 2020, max: 2100 })
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const saveBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const token = localStorage.getItem('token')!;
+    try {
+      await fetch(`${API}/budgets`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }) });
+      fetchBudgets(token);
+      setForm(f => ({ ...f, amount: '' }));
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
+  };
 
-  const { category, amount, month, year } = req.body;
-  try {
-    const result = await pool.query(
-      `INSERT INTO budgets (user_id, category, amount, month, year)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (user_id, category, month, year)
-       DO UPDATE SET amount = $3
-       RETURNING *`,
-      [req.user.id, category, amount, month, year]
-    );
-    res.status(201).json({ budget: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to save budget' });
-  }
-});
-
-// Delete a budget
-router.delete('/:id', authenticate, async (req, res) => {
-  try {
-    const result = await pool.query(
-      'DELETE FROM budgets WHERE id = $1 AND user_id = $2 RETURNING id',
-      [req.params.id, req.user.id]
-    );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Budget not found' });
-    res.json({ message: 'Budget deleted' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete budget' });
-  }
-});
-
-// AI budget recommendations based on spending history
-router.get('/recommendations', authenticate, async (req, res) => {
-  try {
-    const spending = await pool.query(
-      `SELECT category, AVG(monthly_total) as avg_monthly
-       FROM (
-         SELECT category, EXTRACT(MONTH FROM date) as m, EXTRACT(YEAR FROM date) as y, SUM(amount) as monthly_total
-         FROM transactions
-         WHERE user_id = $1 AND type = 'debit' AND date >= NOW() - INTERVAL '3 months'
-         GROUP BY category, m, y
-       ) sub
-       GROUP BY category ORDER BY avg_monthly DESC`,
-      [req.user.id]
-    );
-
-    if (spending.rows.length === 0) {
-      return res.json({ recommendations: [], message: 'Upload more statements to get personalized recommendations' });
-    }
-
-    const recommendations = await generateBudgetRecommendations(spending.rows);
-    res.json(recommendations);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to generate recommendations' });
-  }
-});
-
-// Budget alerts — over budget or near limit
-router.get('/alerts', authenticate, async (req, res) => {
-  const m = new Date().getMonth() + 1;
-  const y = new Date().getFullYear();
-
-  try {
-    const result = await pool.query(
-      `SELECT b.category, b.amount as budget_amount, COALESCE(s.spent, 0) as spent,
-              ROUND(COALESCE(s.spent, 0) / b.amount * 100, 1) as usage_percent
-       FROM budgets b
-       LEFT JOIN (
-         SELECT category, SUM(amount) as spent FROM transactions
-         WHERE user_id = $1 AND type = 'debit'
-           AND EXTRACT(MONTH FROM date) = $2 AND EXTRACT(YEAR FROM date) = $3
-         GROUP BY category
-       ) s ON s.category = b.category
-       WHERE b.user_id = $1 AND b.month = $2 AND b.year = $3
-         AND COALESCE(s.spent, 0) >= b.amount * 0.8`,
-      [req.user.id, m, y]
-    );
-
-    const alerts = result.rows.map(r => ({
-      ...r,
-      level: r.usage_percent >= 100 ? 'exceeded' : 'warning',
-      message: r.usage_percent >= 100
-        ? `You've exceeded your ${r.category} budget by KSH ${(r.spent - r.budget_amount).toFixed(2)}`
-        : `You've used ${r.usage_percent}% of your ${r.category} budget`
-    }));
-
-    res.json({ alerts });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch alerts' });
-  }
-});
-
-module.exports = router;
+  return (
+    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', padding: '40px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800 }}>Budget Tracker</h1>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>← Dashboard</button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', height: 'fit-content' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Set Budget</h3>
+            <form onSubmit={saveBudget} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>Category</label>
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g,' ')}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>Amount (KSH)</label>
+                <input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="5000" required style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+              </div>
+              <button type="submit" disabled={saving} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                {saving ? 'Saving...' : '+ Set Budget'}
+              </button>
+            </form>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>This Month ({budgets.length} budgets)</h3>
+            {budgets.length === 0 ? <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '32px' }}>No budgets set yet</p> : (
+              budgets.map((b, i) => (
+                <div key={i} style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ textTransform: 'capitalize' }}>{b.category?.replace(/_/g,' ')}</span>
+                    <span style={{ color: b.status === 'over' ? '#FF4D6D' : '#00E87A', fontWeight: 700 }}>{b.usage_percent}%</span>
+                  </div>
+                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
+                    <div style={{ height: '100%', width: `${Math.min(b.usage_percent, 100)}%`, background: b.status === 'over' ? '#FF4D6D' : '#00E87A', borderRadius: '3px' }} />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '6px' }}>KSH {Number(b.spent).toLocaleString()} / KSH {Number(b.budget_amount).toLocaleString()}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

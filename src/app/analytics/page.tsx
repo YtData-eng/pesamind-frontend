@@ -1,178 +1,88 @@
-const express = require('express');
-const router = express.Router();
-const pool = require('../config/database');
-const { authenticate } = require('../middleware/auth');
-const { generateFinancialSummary } = require('../services/aiService');
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-// Spending overview (totals, by category, by month)
-router.get('/overview', authenticate, async (req, res) => {
-  const { month, year } = req.query;
-  const userId = req.user.id;
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const CATEGORIES = ['','food_dining','transport','utilities','shopping','airtime_data','entertainment','healthcare','education','savings','business','other'];
 
-  try {
-    // Date filter
-    let dateFilter = '';
-    const params = [userId];
-    if (month && year) {
-      dateFilter = `AND EXTRACT(MONTH FROM date) = $2 AND EXTRACT(YEAR FROM date) = $3`;
-      params.push(parseInt(month), parseInt(year));
-    } else if (year) {
-      dateFilter = `AND EXTRACT(YEAR FROM date) = $2`;
-      params.push(parseInt(year));
-    }
+export default function Analytics() {
+  const router = useRouter();
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [category, setCategory] = useState('');
+  const [type, setType] = useState('');
+  const [loading, setLoading] = useState(true);
 
-    // Total income and expenses
-    const totals = await pool.query(
-      `SELECT
-         SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_income,
-         SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expenses,
-         COUNT(*) as transaction_count
-       FROM transactions WHERE user_id = $1 ${dateFilter}`,
-      params
-    );
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) { router.push('/login'); return; }
+    fetchTx(token);
+  }, [page, category, type]);
 
-    // Spending by category
-    const byCategory = await pool.query(
-      `SELECT category,
-         SUM(amount) as total,
-         COUNT(*) as count,
-         ROUND(AVG(amount)::numeric, 2) as avg_amount
-       FROM transactions
-       WHERE user_id = $1 AND type = 'debit' ${dateFilter}
-       GROUP BY category ORDER BY total DESC`,
-      params
-    );
+  const fetchTx = async (token: string) => {
+    setLoading(true);
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (category) params.set('category', category);
+    if (type) params.set('type', type);
+    try {
+      const res = await fetch(`${API}/analytics/transactions?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      setTransactions(json.transactions || []);
+      setTotal(json.pagination?.total || 0);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
-    // Monthly trend (last 6 months)
-    const trend = await pool.query(
-      `SELECT
-         EXTRACT(YEAR FROM date) as year,
-         EXTRACT(MONTH FROM date) as month,
-         SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as income,
-         SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as expenses
-       FROM transactions
-       WHERE user_id = $1 AND date >= NOW() - INTERVAL '6 months'
-       GROUP BY year, month ORDER BY year, month`,
-      [userId]
-    );
+  return (
+    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', padding: '40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: 800 }}>Transactions</h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>{total} total transactions</p>
+          </div>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>← Dashboard</button>
+        </div>
 
-    // Top 10 transactions
-    const topTransactions = await pool.query(
-      `SELECT date, description, amount, type, category
-       FROM transactions WHERE user_id = $1 AND type = 'debit' ${dateFilter}
-       ORDER BY amount DESC LIMIT 10`,
-      params
-    );
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+          <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+            <option value="">All Categories</option>
+            {CATEGORIES.filter(Boolean).map(c => <option key={c} value={c}>{c.replace(/_/g,' ')}</option>)}
+          </select>
+          <select value={type} onChange={e => { setType(e.target.value); setPage(1); }} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+            <option value="">All Types</option>
+            <option value="receive">Income</option>
+            <option value="send_money">Expense</option>
+          </select>
+        </div>
 
-    const t = totals.rows[0];
-    const savingsRate = t.total_income > 0
-      ? Math.round(((t.total_income - t.total_expenses) / t.total_income) * 100)
-      : 0;
-
-    res.json({
-      totals: {
-        income: parseFloat(t.total_income) || 0,
-        expenses: parseFloat(t.total_expenses) || 0,
-        savings: (parseFloat(t.total_income) || 0) - (parseFloat(t.total_expenses) || 0),
-        savingsRate,
-        transactionCount: parseInt(t.transaction_count)
-      },
-      byCategory: byCategory.rows,
-      monthlyTrend: trend.rows,
-      topTransactions: topTransactions.rows
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch analytics' });
-  }
-});
-
-// AI-powered monthly summary
-router.get('/summary', authenticate, async (req, res) => {
-  const { month, year } = req.query;
-  const userId = req.user.id;
-
-  try {
-    const m = parseInt(month) || new Date().getMonth() + 1;
-    const y = parseInt(year) || new Date().getFullYear();
-
-    const result = await pool.query(
-      `SELECT
-         SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_income,
-         SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expenses,
-         COUNT(*) as transaction_count
-       FROM transactions
-       WHERE user_id = $1 AND EXTRACT(MONTH FROM date) = $2 AND EXTRACT(YEAR FROM date) = $3`,
-      [userId, m, y]
-    );
-
-    const catResult = await pool.query(
-      `SELECT category, SUM(amount) as total FROM transactions
-       WHERE user_id = $1 AND type = 'debit' AND EXTRACT(MONTH FROM date) = $2 AND EXTRACT(YEAR FROM date) = $3
-       GROUP BY category ORDER BY total DESC LIMIT 5`,
-      [userId, m, y]
-    );
-
-    const stats = result.rows[0];
-    const income = parseFloat(stats.total_income) || 0;
-    const expenses = parseFloat(stats.total_expenses) || 0;
-    const savingsRate = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
-
-    const summary = await generateFinancialSummary({
-      period: `${new Date(y, m - 1).toLocaleString('default', { month: 'long' })} ${y}`,
-      totalIncome: income,
-      totalExpenses: expenses,
-      savingsRate,
-      topCategories: catResult.rows,
-      transactionCount: parseInt(stats.transaction_count)
-    });
-
-    res.json({ summary, month: m, year: y, stats: { income, expenses, savingsRate } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to generate summary' });
-  }
-});
-
-// Transaction search and filter
-router.get('/transactions', authenticate, async (req, res) => {
-  const { category, type, start_date, end_date, min_amount, max_amount, page = 1, limit = 20 } = req.query;
-  const userId = req.user.id;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
-
-  try {
-    const conditions = ['user_id = $1'];
-    const params = [userId];
-    let i = 2;
-
-    if (category) { conditions.push(`category = $${i++}`); params.push(category); }
-    if (type) { conditions.push(`type = $${i++}`); params.push(type); }
-    if (start_date) { conditions.push(`date >= $${i++}`); params.push(start_date); }
-    if (end_date) { conditions.push(`date <= $${i++}`); params.push(end_date); }
-    if (min_amount) { conditions.push(`amount >= $${i++}`); params.push(parseFloat(min_amount)); }
-    if (max_amount) { conditions.push(`amount <= $${i++}`); params.push(parseFloat(max_amount)); }
-
-    const whereClause = conditions.join(' AND ');
-
-    const countResult = await pool.query(`SELECT COUNT(*) FROM transactions WHERE ${whereClause}`, params);
-    const total = parseInt(countResult.rows[0].count);
-
-    params.push(parseInt(limit), offset);
-    const result = await pool.query(
-      `SELECT id, date, description, amount, type, category, subcategory, balance, is_flagged
-       FROM transactions WHERE ${whereClause}
-       ORDER BY date DESC LIMIT $${i} OFFSET $${i + 1}`,
-      params
-    );
-
-    res.json({
-      transactions: result.rows,
-      pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total / parseInt(limit)) }
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch transactions' });
-  }
-});
-
-module.exports = router;
+        {/* Table */}
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 120px 120px', gap: '16px', padding: '12px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            {['Date','Description','Category','Amount'].map(h => <p key={h} style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</p>)}
+          </div>
+          {loading ? <p style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)' }}>Loading...</p> :
+            transactions.length === 0 ? <p style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)' }}>No transactions found</p> :
+            transactions.map((tx, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '140px 1fr 120px 120px', gap: '16px', padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{new Date(tx.transaction_date).toLocaleDateString()}</p>
+                <p style={{ fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.description}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'capitalize' }}>{tx.category?.replace(/_/g,' ') || 'other'}</p>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: tx.type === 'receive' ? '#00E87A' : '#FF4D6D' }}>
+                  {tx.type === 'receive' ? '+' : '-'}KSH {Number(tx.amount).toLocaleString()}
+                </p>
+              </div>
+            ))
+          }
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 24px' }}>
+            <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page <= 1} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>← Prev</button>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Page {page}</span>
+            <button onClick={() => setPage(p => p+1)} disabled={transactions.length < 20} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
