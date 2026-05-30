@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = 'http://localhost:4000/api';
-
+const API = 'https://pesamind-backend.onrender.com/api';
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
