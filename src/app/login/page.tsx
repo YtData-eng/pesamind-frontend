@@ -18,7 +18,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ||const API = 'https://pesamind-backend.onrender.com/api'; }/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),
