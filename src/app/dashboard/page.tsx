@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API = 'https://pesamind-backend.onrender.com/api';
+
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -23,10 +26,22 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const json = await res.json();
-      console.log('Analytics:', json);
       setData(json);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
+  };
+
+  const fetchSummary = async () => {
+    setSummaryLoading(true);
+    const token = localStorage.getItem('token')!;
+    try {
+      const res = await fetch(`${API}/analytics/summary`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      setSummary(json.summary || '');
+    } catch (e) { console.error(e); }
+    finally { setSummaryLoading(false); }
   };
 
   const logout = () => {
@@ -36,7 +51,6 @@ export default function Dashboard() {
   };
 
   const fmt = (n: number) => `KSH ${(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 0 })}`;
-  
   const totals = data?.totals || {};
   const income = Number(totals.total_income) || 0;
   const expenses = Number(totals.total_expenses) || 0;
@@ -52,18 +66,12 @@ export default function Dashboard() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>
-              Welcome, {user?.name} 👋
-            </h1>
+            <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>Welcome, {user?.name} 👋</h1>
             <p style={{ color: 'rgba(255,255,255,0.5)' }}>Your M-Pesa financial overview</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => router.push('/statements')} style={{ background: 'rgba(0,232,122,0.15)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>
-              + Upload Statement
-            </button>
-            <button onClick={logout} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>
-              Sign Out
-            </button>
+            <button onClick={() => router.push('/statements')} style={{ background: 'rgba(0,232,122,0.15)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>+ Upload Statement</button>
+            <button onClick={logout} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>Sign Out</button>
           </div>
         </div>
 
@@ -92,7 +100,28 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Spending by Category */}
+            {/* AI Summary */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontWeight: 700 }}>AI Financial Summary</h3>
+                <span style={{ background: 'rgba(0,232,122,0.1)', color: '#00E87A', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>GROQ AI</span>
+              </div>
+              {!summary ? (
+                <div style={{ textAlign: 'center', padding: '24px' }}>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '16px', fontSize: '13px' }}>Get AI-powered insights on your spending habits</p>
+                  <button onClick={fetchSummary} disabled={summaryLoading} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '10px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                    {summaryLoading ? 'Analyzing...' : '✨ Generate AI Summary'}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontSize: '13px', lineHeight: 1.8, color: 'rgba(255,255,255,0.9)' }}>{summary}</p>
+                  <button onClick={fetchSummary} style={{ marginTop: '12px', background: 'none', border: 'none', color: '#00E87A', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>↻ Regenerate</button>
+                </div>
+              )}
+            </div>
+
+            {/* Spending by Category + Recent Transactions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
                 <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Spending by Category</h3>
@@ -117,7 +146,6 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Recent Transactions */}
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
                 <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Recent Transactions</h3>
                 {topTx.length === 0 ? (
