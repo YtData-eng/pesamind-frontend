@@ -20,7 +20,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirm_password) { setError('Passwords do not match'); return; }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:4000/api/auth/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name: form.full_name, email: form.email, phone_number: form.phone_number, password: form.password }),
