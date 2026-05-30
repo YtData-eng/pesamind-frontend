@@ -18,11 +18,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-  const res = await fetch('https://pesamind-backend.onrender.com/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: form.email, password: form.password }),
-  });
+      const res = await fetch('https://pesamind-backend.onrender.com/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
       localStorage.setItem('token', data.token);
@@ -42,23 +42,18 @@ export default function LoginPage() {
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>Welcome back</h1>
           <p style={{ color: 'rgba(255,255,255,0.5)' }}>Sign in to your PesaMind account</p>
         </div>
-
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '36px 32px' }}>
-          {error && (
-            <div style={{ background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '10px', padding: '12px 16px', color: '#ff5050', marginBottom: '20px', fontSize: '14px' }}>
-              {error}
-            </div>
-          )}
+          {error && <div style={{ background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '10px', padding: '12px 16px', color: '#ff5050', marginBottom: '20px', fontSize: '14px' }}>{error}</div>}
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px', fontWeight: 500 }}>Email Address</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>Email</label>
               <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@example.com" required
-                style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }} />
+                style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px', fontWeight: 500 }}>Password</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>Password</label>
               <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="••••••••" required
-                style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }} />
+                style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', fontSize: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <button type="submit" disabled={loading}
               style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,#00E87A,#00C4FF)', color: '#000', fontWeight: 800, fontSize: '15px' }}>
