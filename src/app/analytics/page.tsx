@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://pesamind-backend.onrender.com/api';
 const CATEGORIES = ['','food_dining','transport','utilities','shopping','airtime_data','entertainment','healthcare','education','savings','business','other'];
 
 export default function Analytics() {
