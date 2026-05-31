@@ -1,156 +1,188 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 const API = 'https://pesamind-backend.onrender.com/api';
+const ICONS: Record<string, string> = { food_dining:'🍽', transport:'🚗', utilities:'💡', shopping:'🛍', airtime_data:'📱', entertainment:'🎬', healthcare:'💊', education:'📚', savings:'💰', business:'🏢', other:'📦', family_support:'👨‍👩‍👧', rent:'🏠', salary:'💳' };
+const CATEGORIES = ['food_dining','transport','utilities','shopping','airtime_data','entertainment','healthcare','education','savings','business','family_support','rent','other'];
 
-export default function Fraud() {
+function Nav() {
   const router = useRouter();
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [suspicious, setSuspicious] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({});
-  const [scanning, setScanning] = useState(false);
+  const path = usePathname();
+  const links = [
+    { href: '/dashboard', label: '📊 Dashboard' },
+    { href: '/statements', label: '📄 Statements' },
+    { href: '/budgets', label: '◎ Budgets' },
+    { href: '/fraud', label: '🛡️ Fraud' },
+    { href: '/analytics', label: '📈 Transactions' },
+  ];
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 40px', display: 'flex', gap: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '24px', padding: '12px 0' }}>
+        <div style={{ width: '28px', height: '28px', background: '#00E87A', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>₿</div>
+        <span style={{ fontWeight: 800, fontSize: '16px' }}>PesaMind</span>
+      </div>
+      {links.map(l => (
+        <button key={l.href} onClick={() => router.push(l.href)}
+          style={{ padding: '14px 16px', background: 'none', border: 'none', color: path === l.href ? '#00E87A' : 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px', fontWeight: path === l.href ? 700 : 400, borderBottom: path === l.href ? '2px solid #00E87A' : '2px solid transparent' }}>
+          {l.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function Budgets() {
+  const router = useRouter();
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [scanResult, setScanResult] = useState<any>(null);
+  const [form, setForm] = useState({ category: CATEGORIES[0], amount: '', month: new Date().getMonth() + 1, year: new Date().getFullYear() });
+  const [saving, setSaving] = useState(false);
+  const [genResult, setGenResult] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
-    fetchAll(token);
+    fetchBudgets(token);
   }, []);
 
-  const fetchAll = async (token: string) => {
+  const fetchBudgets = async (token: string) => {
     setLoading(true);
     try {
-      const [a, s, sp] = await Promise.all([
-        fetch(`${API}/fraud/alerts`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-        fetch(`${API}/fraud/stats`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-        fetch(`${API}/analytics/overview`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      ]);
-      setAlerts(a.alerts || []);
-      setStats(s.stats || {});
-      // Find suspicious transactions (large amounts)
-      const recent = sp.recent || [];
-      setSuspicious(recent.filter((t: any) => t.amount > 5000 && t.type !== 'receive').slice(0, 5));
+      const res = await fetch(`${API}/analytics/budgets?month=${new Date().getMonth()+1}&year=${new Date().getFullYear()}`, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      setBudgets(json.budgets || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
-  const scan = async () => {
-    setScanning(true);
+  const generateBudgets = async () => {
+    setGenerating(true);
     const token = localStorage.getItem('token')!;
     try {
-      const res = await fetch(`${API}/fraud/scan`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/analytics/generate-budgets`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
-      setScanResult(json);
-      fetchAll(token);
+      setGenResult(json);
+      fetchBudgets(token);
     } catch (e) { console.error(e); }
-    finally { setScanning(false); }
+    finally { setGenerating(false); }
   };
 
-  const resolve = async (id: string) => {
+  const saveBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
     const token = localStorage.getItem('token')!;
-    await fetch(`${API}/fraud/alerts/${id}/resolve`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
-    setAlerts(a => a.map(x => x.id === id ? { ...x, resolved: true } : x));
+    try {
+      await fetch(`${API}/analytics/budgets`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }) });
+      fetchBudgets(token);
+      setForm(f => ({ ...f, amount: '' }));
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
   };
+
+  const totalBudget = budgets.reduce((s, b) => s + Number(b.amount), 0);
+  const totalSpent = budgets.reduce((s, b) => s + Number(b.spent || 0), 0);
+  const overBudget = budgets.filter(b => Number(b.spent) > Number(b.amount)).length;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', padding: '40px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-
-        {/* Header */}
+    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white' }}>
+      <Nav />
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>🛡️ Fraud Detection</h1>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>AI-powered scam & anomaly monitoring</p>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>◎ Budget Tracker</h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>AI-powered spending limits</p>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={scan} disabled={scanning} style={{ background: scanning ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #FF4D6D, #FF8C42)', color: 'white', fontWeight: 700, padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
-              {scanning ? '⏳ Scanning...' : '🔍 Run Fraud Scan'}
-            </button>
-            <button onClick={() => router.push('/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>← Dashboard</button>
-          </div>
+          <button onClick={generateBudgets} disabled={generating} style={{ background: 'linear-gradient(135deg, #00E87A, #00C4FF)', color: '#000', fontWeight: 700, padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+            {generating ? '⏳ Generating...' : '🤖 Generate with AI'}
+          </button>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        {/* Summary */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
           {[
-            { label: 'Total Alerts', value: stats.total_alerts || 0, color: '#F59E0B', icon: '⚠️' },
-            { label: 'High Severity', value: stats.high_severity || 0, color: '#FF4D6D', icon: '🚨' },
-            { label: 'Unresolved', value: stats.unresolved || 0, color: '#7B5EA7', icon: '🔴' },
-            { label: 'Resolved', value: stats.resolved || 0, color: '#00E87A', icon: '✅' },
+            { label: 'Total Budget', value: `KSH ${totalBudget.toLocaleString()}`, color: '#00E87A' },
+            { label: 'Total Spent', value: `KSH ${totalSpent.toLocaleString()}`, color: '#FF4D6D' },
+            { label: 'Over Budget', value: `${overBudget} categories`, color: overBudget > 0 ? '#FF4D6D' : '#00E87A' },
           ].map((s, i) => (
             <div key={i} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{s.label}</p>
-                <span>{s.icon}</span>
-              </div>
-              <p style={{ fontSize: '28px', fontWeight: 800, color: s.color }}>{s.value}</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>{s.label}</p>
+              <p style={{ fontSize: '22px', fontWeight: 800, color: s.color }}>{s.value}</p>
             </div>
           ))}
         </div>
 
-        {scanResult && (
+        {genResult && (
           <div style={{ background: 'rgba(0,232,122,0.05)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
-            <p style={{ color: '#00E87A', fontWeight: 700 }}>✅ Scan complete — {scanResult.message}</p>
-            {scanResult.alertCount > 0 && <p style={{ color: '#FF4D6D', fontSize: '13px', marginTop: '4px' }}>⚠️ {scanResult.alertCount} suspicious transactions found!</p>}
+            <p style={{ color: '#00E87A', fontWeight: 700 }}>✅ AI generated {genResult.budgets?.length} budgets based on your spending history!</p>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          {/* Fraud Alerts */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
+          {/* Budget List */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>🚨 Fraud Alerts ({alerts.length})</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>This Month ({budgets.length} budgets)</h3>
             {loading ? <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '32px' }}>Loading...</p> :
-              alerts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>🛡️</div>
-                  <p style={{ fontWeight: 700, marginBottom: '8px' }}>No fraud alerts</p>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>Run a scan to check your transactions for suspicious activity</p>
+              budgets.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>🤖</div>
+                  <p style={{ fontWeight: 700, marginBottom: '8px' }}>No budgets yet</p>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', marginBottom: '20px' }}>Let AI analyze your spending and create budgets automatically</p>
+                  <button onClick={generateBudgets} disabled={generating} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '10px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                    {generating ? '⏳ Generating...' : '🤖 Generate with AI'}
+                  </button>
                 </div>
-              ) : alerts.map((a, i) => (
-                <div key={i} style={{ padding: '14px', borderRadius: '10px', background: a.resolved ? 'rgba(255,255,255,0.03)' : a.severity === 'high' ? 'rgba(255,77,109,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${a.resolved ? 'rgba(255,255,255,0.05)' : a.severity === 'high' ? 'rgba(255,77,109,0.25)' : 'rgba(245,158,11,0.25)'}`, marginBottom: '8px', opacity: a.resolved ? 0.6 : 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                        <span>{a.severity === 'high' ? '🚨' : '⚠️'}</span>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: a.severity === 'high' ? '#FF4D6D' : '#F59E0B', textTransform: 'uppercase' }}>{a.severity} risk</span>
+              ) : budgets.map((b, i) => {
+                const spent = Number(b.spent) || 0;
+                const budget = Number(b.amount) || 1;
+                const pct = Math.min(Math.round((spent / budget) * 100), 100);
+                const over = spent > budget;
+                const warning = pct >= 80 && !over;
+                return (
+                  <div key={i} style={{ padding: '16px', background: over ? 'rgba(255,77,109,0.05)' : 'rgba(255,255,255,0.03)', border: `1px solid ${over ? 'rgba(255,77,109,0.2)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '20px' }}>{ICONS[b.category] || '📦'}</span>
+                        <div>
+                          <p style={{ fontWeight: 600, fontSize: '14px', textTransform: 'capitalize' }}>{b.category?.replace(/_/g, ' ')}</p>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>KSH {spent.toLocaleString()} / KSH {budget.toLocaleString()}</p>
+                        </div>
                       </div>
-                      <p style={{ fontSize: '13px', marginBottom: '4px' }}>{a.description}</p>
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>KSH {Number(a.tx_amount).toLocaleString()} · {new Date(a.tx_date).toLocaleDateString()}</p>
+                      <span style={{ background: over ? 'rgba(255,77,109,0.2)' : warning ? 'rgba(245,158,11,0.2)' : 'rgba(0,232,122,0.2)', color: over ? '#FF4D6D' : warning ? '#F59E0B' : '#00E87A', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
+                        {over ? `+${Math.round(((spent - budget) / budget) * 100)}% over` : `${pct}%`}
+                      </span>
                     </div>
-                    {!a.resolved ? (
-                      <button onClick={() => resolve(a.id)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '5px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', marginLeft: '8px' }}>Dismiss</button>
-                    ) : <span style={{ color: '#00E87A', fontSize: '11px', fontWeight: 600, marginLeft: '8px' }}>✓ Resolved</span>}
+                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: over ? '#FF4D6D' : warning ? '#F59E0B' : '#00E87A', borderRadius: '3px', transition: 'width 0.8s ease' }} />
+                    </div>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
+                      {over ? `Over by KSH ${(spent - budget).toLocaleString()}` : `KSH ${(budget - spent).toLocaleString()} remaining`}
+                    </p>
                   </div>
-                </div>
-              ))
+                );
+              })
             }
           </div>
 
-          {/* Large Transactions */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>⚡ Large Transactions</h3>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '20px' }}>Transactions over KSH 5,000 worth reviewing</p>
-            {suspicious.length === 0 ? (
-              <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '32px' }}>No large transactions found</p>
-            ) : suspicious.map((tx, i) => (
-              <div key={i} style={{ padding: '14px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: '10px', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <p style={{ fontSize: '13px', fontWeight: 600 }}>{tx.description?.slice(0, 40)}</p>
-                  <span style={{ color: '#FF4D6D', fontWeight: 700, fontSize: '13px' }}>-KSH {Number(tx.amount).toLocaleString()}</span>
-                </div>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{new Date(tx.transaction_date).toLocaleDateString()} · {tx.category?.replace(/_/g, ' ')}</p>
+          {/* Manual Form */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', height: 'fit-content' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add Budget</h3>
+            <form onSubmit={saveBudget} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Category</label>
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '14px' }}>
+                  {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#1a1a2e' }}>{ICONS[c]} {c.replace(/_/g,' ')}</option>)}
+                </select>
               </div>
-            ))}
-
-            {/* M-Pesa Scam Tips */}
-            <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,77,109,0.05)', border: '1px solid rgba(255,77,109,0.15)', borderRadius: '10px' }}>
-              <p style={{ fontWeight: 700, fontSize: '13px', marginBottom: '10px', color: '#FF4D6D' }}>⚠️ Common M-Pesa Scams</p>
-              {['Fake Safaricom agents asking for PIN', 'Prize/lottery messages asking for fees', '"Wrong number" reversal scams', 'Fake job offers requiring deposits'].map((tip, i) => (
-                <p key={i} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>• {tip}</p>
-              ))}
-            </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Amount (KSH)</label>
+                <input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="5000" required style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '14px', boxSizing: 'border-box' }} />
+              </div>
+              <button type="submit" disabled={saving} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+                {saving ? 'Saving...' : '+ Add Budget'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
