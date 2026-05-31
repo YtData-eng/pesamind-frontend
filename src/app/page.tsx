@@ -46,7 +46,7 @@ export default function Home() {
         </div>
         <h1 style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1.1, marginBottom: '24px', letterSpacing: '-2px' }}>
           Know where your<br />
-          <span style={{ color: '#00E87A' }}>M-Pesa goes</span>
+          <span style={{ color: '#00E87A' }}>Pesa goes</span>
         </h1>
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)', maxWidth: '500px', margin: '0 auto 40px', lineHeight: 1.7 }}>
           Upload your M-Pesa statement and get instant AI-powered insights on your spending, budgets, and financial health score.
