@@ -1,8 +1,34 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 const API = 'https://pesamind-backend.onrender.com/api';
+
+function Nav() {
+  const router = useRouter();
+  const path = usePathname();
+  const links = [
+    { href: '/dashboard', label: '📊 Dashboard' },
+    { href: '/statements', label: '📄 Statements' },
+    { href: '/budgets', label: '◎ Budgets' },
+    { href: '/fraud', label: '🛡️ Fraud' },
+    { href: '/analytics', label: '📈 Transactions' },
+  ];
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 40px', display: 'flex', gap: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '24px', padding: '12px 0' }}>
+        <div style={{ width: '28px', height: '28px', background: '#00E87A', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>₿</div>
+        <span style={{ fontWeight: 800, fontSize: '16px' }}>PesaMind</span>
+      </div>
+      {links.map(l => (
+        <button key={l.href} onClick={() => router.push(l.href)}
+          style={{ padding: '14px 16px', background: 'none', border: 'none', color: path === l.href ? '#00E87A' : 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px', fontWeight: path === l.href ? 700 : 400, borderBottom: path === l.href ? '2px solid #00E87A' : '2px solid transparent' }}>
+          {l.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -63,12 +89,12 @@ export default function Dashboard() {
   const txCount = totals.transaction_count || 0;
   const byCategory = data?.categories || [];
   const topTx = data?.recent || [];
-
   const scoreColor = !health ? '#666' : health.score >= 80 ? '#00E87A' : health.score >= 60 ? '#F59E0B' : health.score >= 40 ? '#FF8C42' : '#FF4D6D';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', padding: '40px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: '#050F09', color: 'white' }}>
+      <Nav />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
@@ -89,17 +115,14 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Top Row: Health Score + Stat Cards */}
+            {/* Health Score + Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', marginBottom: '24px' }}>
-              
-              {/* Financial Health Score */}
               <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${scoreColor}40`, borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Financial Health</p>
                 <div style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '16px' }}>
                   <svg viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
-                    <circle cx="60" cy="60" r="50" fill="none" stroke={scoreColor} strokeWidth="10"
-                      strokeDasharray={`${(health?.score || 0) * 3.14} 314`} strokeLinecap="round" />
+                    <circle cx="60" cy="60" r="50" fill="none" stroke={scoreColor} strokeWidth="10" strokeDasharray={`${(health?.score || 0) * 3.14} 314`} strokeLinecap="round" />
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '28px', fontWeight: 800, color: scoreColor }}>{health?.score || '--'}</span>
@@ -113,8 +136,6 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-
-              {/* Stat Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                 {[
                   { label: 'Total Income', value: fmt(income), color: '#00E87A', icon: '↑', sub: 'Last 12 months' },
@@ -142,75 +163,64 @@ export default function Dashboard() {
               </div>
               {!summary ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Get personalized AI insights on your spending habits and tips to save more</p>
-                  <button onClick={fetchSummary} disabled={summaryLoading} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '10px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: '16px' }}>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Get personalized AI insights on your spending habits</p>
+                  <button onClick={fetchSummary} disabled={summaryLoading} style={{ background: '#00E87A', color: '#000', fontWeight: 700, padding: '10px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginLeft: '16px' }}>
                     {summaryLoading ? '⏳ Analyzing...' : '✨ Generate Insights'}
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
                   <p style={{ fontSize: '14px', lineHeight: 1.8, color: 'rgba(255,255,255,0.9)', flex: 1 }}>{summary}</p>
                   <button onClick={fetchSummary} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '12px', padding: '6px 12px', borderRadius: '8px', whiteSpace: 'nowrap' }}>↻ Refresh</button>
                 </div>
               )}
             </div>
 
-            {/* Bottom Grid */}
+            {/* Category + Transactions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              {/* Spending by Category */}
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <h3 style={{ fontWeight: 700 }}>Spending by Category</h3>
                   <button onClick={() => router.push('/analytics')} style={{ background: 'none', border: 'none', color: '#00E87A', cursor: 'pointer', fontSize: '12px' }}>View all →</button>
                 </div>
-                {byCategory.length === 0 ? (
-                  <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '24px' }}>No data yet</p>
-                ) : (
-                  byCategory.slice(0, 6).map((c: any, i: number) => {
-                    const max = byCategory[0]?.total || 1;
-                    const pct = Math.round((c.total / max) * 100);
-                    const colors = ['#00E87A', '#7B5EA7', '#F59E0B', '#FF4D6D', '#00C4FF', '#FF8C42'];
-                    return (
-                      <div key={i} style={{ marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '13px', textTransform: 'capitalize' }}>{c.category?.replace(/_/g, ' ') || 'Unknown'}</span>
-                          <span style={{ fontSize: '13px', fontWeight: 700 }}>KSH {Number(c.total).toLocaleString()}</span>
-                        </div>
-                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: colors[i % colors.length], borderRadius: '3px', transition: 'width 0.8s ease' }} />
-                        </div>
+                {byCategory.slice(0, 6).map((c: any, i: number) => {
+                  const max = byCategory[0]?.total || 1;
+                  const pct = Math.round((c.total / max) * 100);
+                  const colors = ['#00E87A', '#7B5EA7', '#F59E0B', '#FF4D6D', '#00C4FF', '#FF8C42'];
+                  return (
+                    <div key={i} style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', textTransform: 'capitalize' }}>{c.category?.replace(/_/g, ' ') || 'Unknown'}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 700 }}>KSH {Number(c.total).toLocaleString()}</span>
                       </div>
-                    );
-                  })
-                )}
+                      <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, background: colors[i % colors.length], borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Recent Transactions */}
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <h3 style={{ fontWeight: 700 }}>Recent Transactions</h3>
                   <button onClick={() => router.push('/analytics')} style={{ background: 'none', border: 'none', color: '#00E87A', cursor: 'pointer', fontSize: '12px' }}>View all →</button>
                 </div>
-                {topTx.length === 0 ? (
-                  <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '24px' }}>No transactions yet</p>
-                ) : (
-                  topTx.slice(0, 8).map((tx: any, i: number) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: tx.type === 'receive' ? 'rgba(0,232,122,0.15)' : 'rgba(255,77,109,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
-                          {tx.type === 'receive' ? '↙' : '↗'}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '12px', marginBottom: '2px' }}>{tx.description?.slice(0, 30)}{tx.description?.length > 30 ? '...' : ''}</p>
-                          <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{new Date(tx.transaction_date).toLocaleDateString()}</p>
-                        </div>
+                {topTx.slice(0, 8).map((tx: any, i: number) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: tx.type === 'receive' ? 'rgba(0,232,122,0.15)' : 'rgba(255,77,109,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
+                        {tx.type === 'receive' ? '↙' : '↗'}
                       </div>
-                      <span style={{ color: tx.type === 'receive' ? '#00E87A' : '#FF4D6D', fontWeight: 700, fontSize: '13px' }}>
-                        {tx.type === 'receive' ? '+' : '-'}KSH {Number(tx.amount).toLocaleString()}
-                      </span>
+                      <div>
+                        <p style={{ fontSize: '12px', marginBottom: '2px' }}>{tx.description?.slice(0, 30)}{tx.description?.length > 30 ? '...' : ''}</p>
+                        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{new Date(tx.transaction_date).toLocaleDateString()}</p>
+                      </div>
                     </div>
-                  ))
-                )}
+                    <span style={{ color: tx.type === 'receive' ? '#00E87A' : '#FF4D6D', fontWeight: 700, fontSize: '13px' }}>
+                      {tx.type === 'receive' ? '+' : '-'}KSH {Number(tx.amount).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </>
