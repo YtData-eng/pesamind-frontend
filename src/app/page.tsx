@@ -1,16 +1,19 @@
-import type { Metadata } from 'next'
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'PesaMind — AI Financial Intelligence',
-  description: 'M-Pesa insights powered by AI',
-}
+export default function Home() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) router.push('/dashboard');
+    else router.push('/login');
+  }, []);
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0, background: '#050F09', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
-        {children}
-      </body>
-    </html>
-  )
+    <div style={{ minHeight: '100vh', background: '#050F09', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: 'rgba(255,255,255,0.5)' }}>Loading...</p>
+    </div>
+  );
 }
