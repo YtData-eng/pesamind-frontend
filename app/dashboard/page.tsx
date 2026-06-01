@@ -13,7 +13,8 @@ export default function FounderDashboard() {
     const fetchDashboardMetrics = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/dashboard/metrics');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pesamind-backend.onrender.com';
+        const response = await fetch(`${apiUrl}/api/dashboard/metrics`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard metrics');
