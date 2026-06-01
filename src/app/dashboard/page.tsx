@@ -38,13 +38,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState('');
   const [summaryLoading, setSummaryLoading] = useState(false);
-
+  const [trend, setTrend] = useState<any[]>([]);
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (!token) { router.push('/login'); return; }
     if (userData) setUser(JSON.parse(userData));
-    Promise.all([fetchData(token), fetchHealth(token)]);
+    Promise.all([fetchData(token), fetchHealth(token),  fetchTrend(token) ]);
   }, []);
 
   const fetchData = async (token: string) => {
@@ -63,6 +63,14 @@ export default function Dashboard() {
       setHealth(json);
     } catch (e) { console.error(e); }
   };
+
+  const fetchTrend = async (token: string) => {
+  try {
+    const res = await fetch(`${API}/analytics/trend`, { headers: { Authorization: `Bearer ${token}` } });
+    const json = await res.json();
+    setTrend(json.trend || []);
+  } catch (e) { console.error(e); }
+};
 
   const fetchSummary = async () => {
     setSummaryLoading(true);
@@ -176,6 +184,44 @@ export default function Dashboard() {
               )}
             </div>
 
+
+{/* Monthly Trend */}
+{trend.length > 0 && (
+  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+    <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>📅 Monthly Trend</h3>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '120px' }}>
+      {trend.map((t: any, i: number) => {
+        const maxVal = Math.max(...trend.map((x: any) => Math.max(Number(x.income), Number(x.expenses))));
+        const incH = Math.round((Number(t.income) / maxVal) * 100);
+        const expH = Math.round((Number(t.expenses) / maxVal) * 100);
+        const prevExp = i > 0 ? Number(trend[i-1].expenses) : Number(t.expenses);
+        const change = prevExp > 0 ? Math.round(((Number(t.expenses) - prevExp) / prevExp) * 100) : 0;
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <p style={{ fontSize: '10px', color: change > 10 ? '#FF4D6D' : change < -10 ? '#00E87A' : 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+              {i > 0 && change !== 0 ? `${change > 0 ? '+' : ''}${change}%` : ''}
+            </p>
+            <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '80px' }}>
+              <div style={{ width: '14px', height: `${incH}%`, background: '#00E87A', borderRadius: '3px 3px 0 0', minHeight: '4px', opacity: 0.8 }} title={`Income: KSH ${Number(t.income).toLocaleString()}`} />
+              <div style={{ width: '14px', height: `${expH}%`, background: '#FF4D6D', borderRadius: '3px 3px 0 0', minHeight: '4px', opacity: 0.8 }} title={`Expenses: KSH ${Number(t.expenses).toLocaleString()}`} />
+            </div>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>{t.label}</p>
+          </div>
+        );
+      })}
+    </div>
+    <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ width: '10px', height: '10px', background: '#00E87A', borderRadius: '2px' }} />
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Income</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ width: '10px', height: '10px', background: '#FF4D6D', borderRadius: '2px' }} />
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Expenses</span>
+      </div>
+    </div>
+  </div>
+)}
             {/* Category + Transactions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>

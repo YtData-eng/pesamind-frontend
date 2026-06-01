@@ -38,6 +38,9 @@ export default function Fraud() {
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [scanResult, setScanResult] = useState<any>(null);
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [spikes, setSpikes] = useState<any[]>([]);
+  const [newMerchants, setNewMerchants] = useState<any[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -48,15 +51,21 @@ export default function Fraud() {
   const fetchAll = async (token: string) => {
     setLoading(true);
     try {
-      const [a, s, sp] = await Promise.all([
+      const [a, s, sp, d, spk, nm] = await Promise.all([
         fetch(`${API}/fraud/alerts`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
         fetch(`${API}/fraud/stats`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
         fetch(`${API}/analytics/overview`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+        fetch(`${API}/fraud/duplicates`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+        fetch(`${API}/fraud/spikes`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+        fetch(`${API}/fraud/new-merchants`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
       ]);
       setAlerts(a.alerts || []);
       setStats(s.stats || {});
       const recent = sp.recent || [];
       setSuspicious(recent.filter((t: any) => t.amount > 5000 && t.type !== 'receive').slice(0, 5));
+      setDuplicates(d.duplicates || []);
+      setSpikes(spk.spikes || []);
+      setNewMerchants(nm.merchants || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -83,6 +92,8 @@ export default function Fraud() {
     <div style={{ minHeight: '100vh', background: '#050F09', color: 'white' }}>
       <Nav />
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px' }}>
+
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>🛡️ Fraud Detection</h1>
@@ -118,7 +129,8 @@ export default function Fraud() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        {/* Main Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           {/* Fraud Alerts */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>🚨 Fraud Alerts ({alerts.length})</h3>
@@ -166,7 +178,6 @@ export default function Fraud() {
                 </div>
               ))}
             </div>
-
             <div style={{ background: 'rgba(255,77,109,0.05)', border: '1px solid rgba(255,77,109,0.15)', borderRadius: '16px', padding: '24px' }}>
               <p style={{ fontWeight: 700, fontSize: '14px', marginBottom: '12px', color: '#FF4D6D' }}>⚠️ Common M-Pesa Scams</p>
               {['Fake Safaricom agents asking for PIN', 'Prize/lottery messages asking for fees', '"Wrong number" reversal scams', 'Fake job offers requiring deposits', 'Impersonation of family members'].map((tip, i) => (
@@ -175,6 +186,63 @@ export default function Fraud() {
             </div>
           </div>
         </div>
+
+        {/* Spending Spikes */}
+        {spikes.length > 0 && (
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>📈 Unusual Spending Spikes</h3>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '16px' }}>Categories with 50%+ above normal spending this month</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+              {spikes.map((s, i) => (
+                <div key={i} style={{ padding: '14px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{s.category?.replace(/_/g, ' ')}</span>
+                    <span style={{ color: '#F59E0B', fontWeight: 700, fontSize: '13px' }}>+{s.pct_change}%</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>This month: KSH {Number(s.current_spend).toLocaleString()}</p>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Avg: KSH {Number(s.avg_spend).toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Duplicate Transactions */}
+        {duplicates.length > 0 && (
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(123,94,167,0.2)', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>🔄 Duplicate Transactions</h3>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '16px' }}>Same amount paid to same recipient multiple times</p>
+            {duplicates.map((d, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(123,94,167,0.05)', border: '1px solid rgba(123,94,167,0.15)', borderRadius: '10px', marginBottom: '8px' }}>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{d.description?.slice(0, 45)}</p>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>KSH {Number(d.amount).toLocaleString()} × {d.count} times</p>
+                </div>
+                <span style={{ background: 'rgba(123,94,167,0.2)', color: '#7B5EA7', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>{d.count}x</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New Merchants */}
+        {newMerchants.length > 0 && (
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,196,255,0.2)', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>🆕 New Merchants</h3>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '16px' }}>First-time payments in the last 30 days</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+              {newMerchants.map((m, i) => (
+                <div key={i} style={{ padding: '12px', background: 'rgba(0,196,255,0.03)', border: '1px solid rgba(0,196,255,0.1)', borderRadius: '10px' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{m.description?.slice(0, 40)}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{new Date(m.transaction_date).toLocaleDateString()}</p>
+                    <p style={{ fontSize: '11px', color: '#FF4D6D', fontWeight: 600 }}>KSH {Number(m.amount).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
