@@ -17,7 +17,15 @@ function Nav() {
   return (
     <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 40px', display: 'flex', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '24px', padding: '12px 0' }}>
-        <div style={{ width: '28px', height: '28px', background: '#00E87A', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>₿</div>
+        <svg width="28" height="28" viewBox="0 0 80 80" fill="none">
+          <rect width="80" height="80" rx="20" fill="#00E87A"/>
+          <rect x="13" y="48" width="10" height="20" rx="2" fill="#003D20"/>
+          <rect x="27" y="38" width="10" height="30" rx="2" fill="#003D20"/>
+          <rect x="41" y="28" width="10" height="40" rx="2" fill="#003D20"/>
+          <rect x="55" y="35" width="10" height="33" rx="2" fill="#003D20"/>
+          <polyline points="18,47 32,32 46,20 60,28" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="60" cy="28" r="3.5" fill="white"/>
+        </svg>
         <span style={{ fontWeight: 800, fontSize: '16px' }}>PesaMind</span>
       </div>
       {links.map(l => (
@@ -35,16 +43,17 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [data, setData] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
+  const [trend, setTrend] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState('');
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [trend, setTrend] = useState<any[]>([]);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (!token) { router.push('/login'); return; }
     if (userData) setUser(JSON.parse(userData));
-    Promise.all([fetchData(token), fetchHealth(token),  fetchTrend(token) ]);
+    Promise.all([fetchData(token), fetchHealth(token), fetchTrend(token)]);
   }, []);
 
   const fetchData = async (token: string) => {
@@ -65,12 +74,12 @@ export default function Dashboard() {
   };
 
   const fetchTrend = async (token: string) => {
-  try {
-    const res = await fetch(`${API}/analytics/trend`, { headers: { Authorization: `Bearer ${token}` } });
-    const json = await res.json();
-    setTrend(json.trend || []);
-  } catch (e) { console.error(e); }
-};
+    try {
+      const res = await fetch(`${API}/analytics/trend`, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      setTrend(json.trend || []);
+    } catch (e) { console.error(e); }
+  };
 
   const fetchSummary = async () => {
     setSummaryLoading(true);
@@ -98,6 +107,8 @@ export default function Dashboard() {
   const byCategory = data?.categories || [];
   const topTx = data?.recent || [];
   const scoreColor = !health ? '#666' : health.score >= 80 ? '#00E87A' : health.score >= 60 ? '#F59E0B' : health.score >= 40 ? '#FF8C42' : '#FF4D6D';
+
+  const maxTrendVal = trend.length > 0 ? Math.max(...trend.map((t: any) => Math.max(Number(t.income), Number(t.expenses)))) : 1;
 
   return (
     <div style={{ minHeight: '100vh', background: '#050F09', color: 'white' }}>
@@ -163,6 +174,70 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Monthly Trend Comparison */}
+            {trend.length > 0 && (
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h3 style={{ fontWeight: 700 }}>📅 Monthly Trend</h3>
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '10px', height: '10px', background: '#00E87A', borderRadius: '2px' }} />
+                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Income</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '10px', height: '10px', background: '#FF4D6D', borderRadius: '2px' }} />
+                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Expenses</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '140px', padding: '0 8px' }}>
+                  {trend.map((t: any, i: number) => {
+                    const incH = Math.round((Number(t.income) / maxTrendVal) * 110);
+                    const expH = Math.round((Number(t.expenses) / maxTrendVal) * 110);
+                    const prevExp = i > 0 ? Number(trend[i-1].expenses) : Number(t.expenses);
+                    const change = prevExp > 0 ? Math.round(((Number(t.expenses) - prevExp) / prevExp) * 100) : 0;
+                    return (
+                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <p style={{ fontSize: '10px', color: change > 10 ? '#FF4D6D' : change < -10 ? '#00E87A' : 'rgba(255,255,255,0.3)', fontWeight: 600, height: '14px' }}>
+                          {i > 0 && change !== 0 ? `${change > 0 ? '+' : ''}${change}%` : ''}
+                        </p>
+                        <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', flex: 1 }}>
+                          <div style={{ width: '18px', height: `${Math.max(incH, 4)}px`, background: '#00E87A', borderRadius: '3px 3px 0 0', opacity: 0.85 }} title={`Income: KSH ${Number(t.income).toLocaleString()}`} />
+                          <div style={{ width: '18px', height: `${Math.max(expH, 4)}px`, background: '#FF4D6D', borderRadius: '3px 3px 0 0', opacity: 0.85 }} title={`Expenses: KSH ${Number(t.expenses).toLocaleString()}`} />
+                        </div>
+                        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', whiteSpace: 'nowrap' }}>{t.label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Month over month summary */}
+                {trend.length >= 2 && (() => {
+                  const last = trend[trend.length - 1];
+                  const prev = trend[trend.length - 2];
+                  const expChange = prev.expenses > 0 ? Math.round(((Number(last.expenses) - Number(prev.expenses)) / Number(prev.expenses)) * 100) : 0;
+                  const incChange = prev.income > 0 ? Math.round(((Number(last.income) - Number(prev.income)) / Number(prev.income)) * 100) : 0;
+                  return (
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ flex: 1, padding: '12px', background: incChange >= 0 ? 'rgba(0,232,122,0.05)' : 'rgba(255,77,109,0.05)', borderRadius: '10px', border: `1px solid ${incChange >= 0 ? 'rgba(0,232,122,0.15)' : 'rgba(255,77,109,0.15)'}` }}>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Income vs last month</p>
+                        <p style={{ fontWeight: 700, color: incChange >= 0 ? '#00E87A' : '#FF4D6D' }}>{incChange >= 0 ? '+' : ''}{incChange}% {incChange >= 0 ? '↑' : '↓'}</p>
+                      </div>
+                      <div style={{ flex: 1, padding: '12px', background: expChange <= 0 ? 'rgba(0,232,122,0.05)' : 'rgba(255,77,109,0.05)', borderRadius: '10px', border: `1px solid ${expChange <= 0 ? 'rgba(0,232,122,0.15)' : 'rgba(255,77,109,0.15)'}` }}>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Expenses vs last month</p>
+                        <p style={{ fontWeight: 700, color: expChange <= 0 ? '#00E87A' : '#FF4D6D' }}>{expChange >= 0 ? '+' : ''}{expChange}% {expChange <= 0 ? '↓' : '↑'}</p>
+                      </div>
+                      <div style={{ flex: 1, padding: '12px', background: 'rgba(123,94,167,0.05)', borderRadius: '10px', border: '1px solid rgba(123,94,167,0.15)' }}>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Best saving month</p>
+                        <p style={{ fontWeight: 700, color: '#7B5EA7' }}>
+                          {trend.reduce((best: any, t: any) => (Number(t.income) - Number(t.expenses)) > (Number(best.income) - Number(best.expenses)) ? t : best, trend[0])?.label}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* AI Summary */}
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -184,44 +259,6 @@ export default function Dashboard() {
               )}
             </div>
 
-
-{/* Monthly Trend */}
-{trend.length > 0 && (
-  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
-    <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>📅 Monthly Trend</h3>
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '120px' }}>
-      {trend.map((t: any, i: number) => {
-        const maxVal = Math.max(...trend.map((x: any) => Math.max(Number(x.income), Number(x.expenses))));
-        const incH = Math.round((Number(t.income) / maxVal) * 100);
-        const expH = Math.round((Number(t.expenses) / maxVal) * 100);
-        const prevExp = i > 0 ? Number(trend[i-1].expenses) : Number(t.expenses);
-        const change = prevExp > 0 ? Math.round(((Number(t.expenses) - prevExp) / prevExp) * 100) : 0;
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-            <p style={{ fontSize: '10px', color: change > 10 ? '#FF4D6D' : change < -10 ? '#00E87A' : 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-              {i > 0 && change !== 0 ? `${change > 0 ? '+' : ''}${change}%` : ''}
-            </p>
-            <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '80px' }}>
-              <div style={{ width: '14px', height: `${incH}%`, background: '#00E87A', borderRadius: '3px 3px 0 0', minHeight: '4px', opacity: 0.8 }} title={`Income: KSH ${Number(t.income).toLocaleString()}`} />
-              <div style={{ width: '14px', height: `${expH}%`, background: '#FF4D6D', borderRadius: '3px 3px 0 0', minHeight: '4px', opacity: 0.8 }} title={`Expenses: KSH ${Number(t.expenses).toLocaleString()}`} />
-            </div>
-            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>{t.label}</p>
-          </div>
-        );
-      })}
-    </div>
-    <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <div style={{ width: '10px', height: '10px', background: '#00E87A', borderRadius: '2px' }} />
-        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Income</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <div style={{ width: '10px', height: '10px', background: '#FF4D6D', borderRadius: '2px' }} />
-        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Expenses</span>
-      </div>
-    </div>
-  </div>
-)}
             {/* Category + Transactions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>

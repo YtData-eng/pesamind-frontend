@@ -112,7 +112,40 @@ export default function Budgets() {
             </div>
           ))}
         </div>
+ 
 
+        {/* Savings Target */}
+<div style={{ background: 'linear-gradient(135deg, rgba(123,94,167,0.15), rgba(0,232,122,0.08))', border: '1px solid rgba(123,94,167,0.3)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div>
+      <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>🎯 Savings Target</h3>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+        {totalBudget > 0
+          ? `Budget: KSH ${totalBudget.toLocaleString()} · Spent: KSH ${totalSpent.toLocaleString()} · Saved: KSH ${Math.max(0, totalBudget - totalSpent).toLocaleString()}`
+          : 'Generate budgets with AI to see your savings target'}
+      </p>
+      {totalBudget > 0 && (
+        <div style={{ marginTop: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Budget used</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: totalSpent > totalBudget ? '#FF4D6D' : '#00E87A' }}>
+              {Math.round((totalSpent / totalBudget) * 100)}%
+            </span>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }}>
+            <div style={{ height: '100%', width: `${Math.min(Math.round((totalSpent / totalBudget) * 100), 100)}%`, background: totalSpent > totalBudget ? '#FF4D6D' : '#00E87A', borderRadius: '4px', transition: 'width 0.8s ease' }} />
+          </div>
+        </div>
+      )}
+    </div>
+    <div style={{ textAlign: 'right', marginLeft: '24px' }}>
+      <p style={{ fontSize: '32px', fontWeight: 800, color: totalSpent > totalBudget ? '#FF4D6D' : '#00E87A' }}>
+        KSH {Math.max(0, totalBudget - totalSpent).toLocaleString()}
+      </p>
+      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>potential savings</p>
+    </div>
+  </div>
+</div>
         {genResult && (
           <div style={{ background: 'rgba(0,232,122,0.05)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
             <p style={{ color: '#00E87A', fontWeight: 700 }}>✅ AI generated {genResult.budgets?.length} budgets based on your spending history!</p>
