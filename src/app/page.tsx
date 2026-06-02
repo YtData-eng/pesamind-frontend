@@ -129,6 +129,9 @@ export default function Home() {
         <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '32px', fontSize: '16px' }}>Join Kenyans managing their M-Pesa finances smarter.</p>
         <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 800, fontSize: '18px' }}>
           Get Started Free →
+         <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, fontSize: '18px' }}>
+  Join Waitlist
+</button>
         </button>
       </div>
 
