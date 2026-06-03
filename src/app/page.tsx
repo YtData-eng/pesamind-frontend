@@ -27,17 +27,21 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
 
+      
       {/* Navbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Logo size={36} />
-          <span style={{ fontWeight: 800, fontSize: '20px' }}>PesaMind</span>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => router.push('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Sign In</button>
-          <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>Get Started →</button>
-        </div>
-      </div>
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => router.push('/')}>
+    <Logo size={36} />
+    <span style={{ fontWeight: 800, fontSize: '20px' }}>PesaMind</span>
+  </div>
+  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+    <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+      🚀 Join Waitlist
+    </button>
+    <button onClick={() => router.push('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Sign In</button>
+    <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>Get Started →</button>
+  </div>
+</div>
 
       {/* Hero */}
       <div style={{ textAlign: 'center', padding: '100px 60px 60px' }}>
@@ -121,32 +125,38 @@ export default function Home() {
       </div>
 
       {/* CTA */}
-      <div style={{ textAlign: 'center', padding: '80px 60px' }}>
-        <div style={{ display: 'inline-block', marginBottom: '24px' }}>
-          <Logo size={56} />
-        </div>
-        <h2 style={{ fontSize: '40px', fontWeight: 800, marginBottom: '16px' }}>Ready to take control?</h2>
-        <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '32px', fontSize: '16px' }}>Join Kenyans managing their M-Pesa finances smarter.</p>
-        <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 800, fontSize: '18px' }}>
-          Get Started Free →
-         <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, fontSize: '18px' }}>
-  Join Waitlist
-</button>
-        </button>
-      </div>
+<div style={{ textAlign: 'center', padding: '80px 60px' }}>
+  <div style={{ display: 'inline-block', marginBottom: '24px' }}>
+    <Logo size={56} />
+  </div>
+  <h2 style={{ fontSize: '40px', fontWeight: 800, marginBottom: '16px' }}>Ready to take control?</h2>
+  <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '32px', fontSize: '16px' }}>Join Kenyans managing their M-Pesa finances smarter.</p>
+  <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+    <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 800, fontSize: '18px' }}>
+      Get Started Free →
+    </button>
+    <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, fontSize: '18px' }}>
+      Join Waitlist
+    </button>
+  </div>
+</div>
 
-      {/* Footer */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Logo size={24} />
-          <span style={{ fontWeight: 700 }}>PesaMind</span>
-        </div>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>© 2026 PesaMind · Built for Kenya 🇰🇪</p>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <button onClick={() => router.push('/login')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Sign In</button>
-          <button onClick={() => router.push('/register')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Register</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+     {/* Footer */}
+<div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <Logo size={24} />
+    <span style={{ fontWeight: 700 }}>PesaMind</span>
+  </div>
+  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>© 2026 PesaMind · Built for Kenya 🇰🇪</p>
+  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+    <button onClick={() => router.push('/waitlist')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Waitlist</button>
+    <button onClick={() => router.push('/login')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Sign In</button>
+    <button onClick={() => router.push('/register')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Register</button>
+    {/* Hidden founder access */}
+    <button onClick={() => {
+      const key = prompt('Enter founder key:');
+      if (key === 'pesamind2026') router.push('/admin');
+      else if (key !== null) alert('Invalid key');
+    }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.1)', cursor: 'pointer', fontSize: '11px' }}>·</button>
+  </div>
+</div>
