@@ -107,7 +107,6 @@ export default function Dashboard() {
   const byCategory = data?.categories || [];
   const topTx = data?.recent || [];
   const scoreColor = !health ? '#666' : health.score >= 80 ? '#00E87A' : health.score >= 60 ? '#F59E0B' : health.score >= 40 ? '#FF8C42' : '#FF4D6D';
-
   const maxTrendVal = trend.length > 0 ? Math.max(...trend.map((t: any) => Math.max(Number(t.income), Number(t.expenses)))) : 1;
 
   return (
@@ -122,6 +121,7 @@ export default function Dashboard() {
             <p style={{ color: 'rgba(255,255,255,0.5)' }}>Your M-Pesa financial overview</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={() => router.push('/')} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>🏠 Home</button>
             <button onClick={() => router.push('/statements')} style={{ background: 'rgba(0,232,122,0.15)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>+ Upload Statement</button>
             <button onClick={logout} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>Sign Out</button>
           </div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Monthly Trend Comparison */}
+            {/* Monthly Trend */}
             {trend.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -194,7 +194,7 @@ export default function Dashboard() {
                   {trend.map((t: any, i: number) => {
                     const incH = Math.round((Number(t.income) / maxTrendVal) * 110);
                     const expH = Math.round((Number(t.expenses) / maxTrendVal) * 110);
-                    const prevExp = i > 0 ? Number(trend[i-1].expenses) : Number(t.expenses);
+                    const prevExp = i > 0 ? Number(trend[i - 1].expenses) : Number(t.expenses);
                     const change = prevExp > 0 ? Math.round(((Number(t.expenses) - prevExp) / prevExp) * 100) : 0;
                     return (
                       <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -210,7 +210,6 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
-                {/* Month over month summary */}
                 {trend.length >= 2 && (() => {
                   const last = trend[trend.length - 1];
                   const prev = trend[trend.length - 2];
