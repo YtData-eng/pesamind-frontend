@@ -103,9 +103,10 @@ export default function AdminDashboard() {
               {tab === 'waitlist' ? `Waitlist (${waitlist.length})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
-          <button onClick={() => router.push('/dashboard')} style={{ padding: '8px 18px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontSize: '13px', background: 'transparent', color: 'rgba(255,255,255,0.5)', marginLeft: '8px' }}>
-            ← App
-          </button>
+          <button onClick={() => router.push('/dashboard')} style={{ padding: '8px 18px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontSize: '13px', background: 'transparent', color: 'white', marginLeft: '8px', fontWeight: 600 }}>
+  ← Dashboard
+</button>          
+
         </div>
       </div>
 
