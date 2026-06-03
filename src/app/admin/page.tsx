@@ -27,11 +27,34 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) { router.push('/login'); return; }
-    fetchStats(token);
-    fetchWaitlist(token);
-  }, []);
+  const founderKey = localStorage.getItem('founder_key');
+  const token = localStorage.getItem('token');
+
+  if (founderKey === 'pesamind2026') {
+    if (token) {
+      fetchStats(token);
+      fetchWaitlist(token);
+    } else {
+      setError('Please sign in first, then access the founder dashboard');
+      setLoading(false);
+    }
+    return;
+  }
+
+  const key = prompt('Enter founder key:');
+  if (key === 'pesamind2026') {
+    localStorage.setItem('founder_key', 'pesamind2026');
+    if (token) {
+      fetchStats(token);
+      fetchWaitlist(token);
+    } else {
+      setError('Please sign in first, then access the founder dashboard');
+      setLoading(false);
+    }
+  } else {
+    router.push('/');
+  }
+}, []);
 
   const fetchStats = async (token: string) => {
     try {
