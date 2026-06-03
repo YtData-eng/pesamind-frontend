@@ -28,51 +28,51 @@ export default function AdminDashboard() {
 
   useEffect(() => {
   const founderKey = localStorage.getItem('founder_key');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || '';
 
   if (founderKey === 'pesamind2026') {
-    if (token) {
-      fetchStats(token);
-      fetchWaitlist(token);
-    } else {
-      setError('Please sign in first, then access the founder dashboard');
-      setLoading(false);
-    }
+    fetchStats(token);
+    fetchWaitlist(token);
     return;
   }
 
   const key = prompt('Enter founder key:');
   if (key === 'pesamind2026') {
     localStorage.setItem('founder_key', 'pesamind2026');
-    if (token) {
-      fetchStats(token);
-      fetchWaitlist(token);
-    } else {
-      setError('Please sign in first, then access the founder dashboard');
-      setLoading(false);
-    }
+    fetchStats(token);
+    fetchWaitlist(token);
   } else {
     router.push('/');
   }
 }, []);
 
   const fetchStats = async (token: string) => {
-    try {
-      const res = await fetch(`${API}/admin/stats`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.status === 403) { setError('Admin access only'); setLoading(false); return; }
-      const json = await res.json();
-      setStats(json);
-    } catch (e) { setError('Failed to load stats'); }
-    finally { setLoading(false); }
-  };
+  try {
+    const founderKey = localStorage.getItem('founder_key') || '';
+    const headers: any = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (founderKey) headers['x-founder-key'] = founderKey;
 
-  const fetchWaitlist = async (token: string) => {
-    try {
-      const res = await fetch(`${API}/admin/waitlist`, { headers: { Authorization: `Bearer ${token}` } });
-      const json = await res.json();
-      setWaitlist(json.waitlist || []);
-    } catch (e) { console.error(e); }
-  };
+    const res = await fetch(`${API}/admin/stats`, { headers });
+    if (res.status === 403) { setError('Admin access only'); setLoading(false); return; }
+    const json = await res.json();
+    setStats(json);
+  } catch (e) { setError('Failed to load stats'); }
+  finally { setLoading(false); }
+};
+
+const fetchWaitlist = async (token: string) => {
+  try {
+    const founderKey = localStorage.getItem('founder_key') || '';
+    const headers: any = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (founderKey) headers['x-founder-key'] = founderKey;
+
+    const res = await fetch(`${API}/admin/waitlist`, { headers });
+    const json = await res.json();
+    setWaitlist(json.waitlist || []);
+  } catch (e) { console.error(e); }
+};
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#050F09', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
