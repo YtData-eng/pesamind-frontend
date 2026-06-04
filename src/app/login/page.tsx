@@ -103,7 +103,9 @@ export default function LoginPage() {
               {loading ? '⏳ Signing in...' : 'Sign in →'}
             </button>
           </form>
-
+          <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
+  <button onClick={() => router.push('/forgot-password')} style={{ background: 'none', border: 'none', color: '#00E87A', cursor: 'pointer', fontSize: '13px' }}>Forgot password?</button>
+</p>
           <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>
             Don't have an account?{' '}
             <Link href="/register" style={{ color: '#00E87A', textDecoration: 'none', fontWeight: 600 }}>Create one</Link>

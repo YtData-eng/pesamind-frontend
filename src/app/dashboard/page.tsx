@@ -124,6 +124,15 @@ export default function Dashboard() {
             <button onClick={() => router.push('/')} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>🏠 Home</button>
             <button onClick={() => router.push('/statements')} style={{ background: 'rgba(0,232,122,0.15)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>+ Upload Statement</button>
             <button onClick={logout} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer' }}>Sign Out</button>
+            <button onClick={async () => {
+  const token = localStorage.getItem('token')!;
+  const res = await fetch(`${API}/analytics/recategorize`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  const json = await res.json();
+  alert(json.message);
+  fetchData(token);
+}} style={{ background: 'rgba(123,94,167,0.15)', border: '1px solid rgba(123,94,167,0.3)', color: '#7B5EA7', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>
+  🔄 Fix Categories
+</button>
           </div>
         </div>
 

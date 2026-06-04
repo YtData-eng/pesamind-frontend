@@ -1,0 +1,21 @@
+* { box-sizing: border-box; }
+
+@media (max-width: 768px) {
+  /* Landing page */
+  .hero-title { font-size: 36px !important; }
+  .hero-grid { grid-template-columns: 1fr !important; }
+  .nav-buttons { display: none !important; }
+  .mobile-nav { display: flex !important; }
+  
+  /* Dashboard grids */
+  .dash-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .dash-grid-2 { grid-template-columns: 1fr !important; }
+  .dash-grid-health { grid-template-columns: 1fr !important; }
+  
+  /* Nav bar */
+  .nav-bar { overflow-x: auto; padding: 0 16px !important; }
+  .main-content { padding: 16px !important; }
+  
+  /* Tables */
+  .tx-table { font-size: 11px !important; }
+}
