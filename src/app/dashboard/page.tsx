@@ -7,13 +7,14 @@ const API = 'https://pesamind-backend.onrender.com/api';
 function Nav() {
   const router = useRouter();
   const path = usePathname();
-  const links = [
-    { href: '/dashboard', label: '📊 Dashboard' },
-    { href: '/statements', label: '📄 Statements' },
-    { href: '/budgets', label: '◎ Budgets' },
-    { href: '/fraud', label: '🛡️ Fraud' },
-    { href: '/analytics', label: '📈 Transactions' },
-  ];
+ const links = [
+  { href: '/dashboard', label: '📊 Dashboard' },
+  { href: '/statements', label: '📄 Statements' },
+  { href: '/budgets', label: '◎ Budgets' },
+  { href: '/fraud', label: '🛡️ Fraud' },
+  { href: '/analytics', label: '📈 Transactions' },
+  { href: '/pricing', label: '⭐ Upgrade' },
+]; 
   return (
     <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 40px', display: 'flex', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '24px', padding: '12px 0' }}>
@@ -143,6 +144,19 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
+
+          {/* Pro Upgrade Banner */}
+{!health?.is_pro && (
+  <div style={{ background: 'linear-gradient(135deg, rgba(0,232,122,0.1), rgba(0,196,255,0.05))', border: '1px solid rgba(0,232,122,0.2)', borderRadius: '12px', padding: '16px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div>
+      <p style={{ fontWeight: 700, marginBottom: '4px' }}>🚀 Upgrade to Pro</p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Unlimited uploads, AI summaries and advanced fraud detection for KSH 299/month</p>
+    </div>
+    <button onClick={() => router.push('/pricing')} style={{ background: '#00E87A', color: '#000', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap', marginLeft: '16px' }}>
+      Upgrade →
+    </button>
+  </div>
+)}
             {/* Health Score + Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', marginBottom: '24px' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${scoreColor}40`, borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>

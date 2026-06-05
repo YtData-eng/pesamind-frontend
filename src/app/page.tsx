@@ -45,6 +45,7 @@ export default function Home() {
           </button>
           <button onClick={() => router.push('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Sign In</button>
           <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>Get Started →</button>
+          <button onClick={() => router.push('/pricing')} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>Pricing</button>
         </div>
       </div>
 
