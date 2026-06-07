@@ -14,6 +14,7 @@ function Nav() {
   { href: '/fraud', label: '🛡️ Fraud' },
   { href: '/analytics', label: '📈 Transactions' },
   { href: '/pricing', label: '⭐ Upgrade' },
+  { href: '/referral', label: '🎁 Refer & Earn' },
 ]; 
   return (
     <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 40px', display: 'flex', gap: '4px' }}>

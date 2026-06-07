@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
@@ -9,6 +9,12 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ full_name: '', email: '', phone_number: '', password: '', confirm_password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchParams, setSearchParams] = useState('');
+
+  // ─── Capture ref code from URL ───────────────────────────────
+  useEffect(() => {
+    setSearchParams(window.location.search);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,7 +29,14 @@ export default function RegisterPage() {
       const res = await fetch(`https://pesamind-backend.onrender.com/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: form.full_name, email: form.email, phone_number: form.phone_number, password: form.password }),
+        // ─── Updated fetch body with ref code ───────────────
+        body: JSON.stringify({
+          full_name: form.full_name,
+          email: form.email,
+          phone_number: form.phone_number,
+          password: form.password,
+          ref: new URLSearchParams(searchParams).get('ref') || ''
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
