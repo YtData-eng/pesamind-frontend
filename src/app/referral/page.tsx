@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-const API = 'https://pesamind-backend.onrender.com/api';
+import { API } from '../../lib/config';
 
 function Nav() {
   const router = useRouter();

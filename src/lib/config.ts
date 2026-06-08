@@ -1,0 +1,2 @@
+export const API = process.env.NEXT_PUBLIC_API_URL || 'https://pesamind-backend.onrender.com/api';
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://pesamind-frontend-f77z.vercel.app';

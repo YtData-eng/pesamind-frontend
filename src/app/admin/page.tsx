@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-const API = 'https://pesamind-backend.onrender.com/api';
+import { API } from '../lib/config';
 
 function Logo() {
   return (

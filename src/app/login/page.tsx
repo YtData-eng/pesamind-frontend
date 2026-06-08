@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = 'https://pesamind-backend.onrender.com/api';
+import { API } from '../../lib/config';
 
 function Logo({ size = 40 }: { size?: number }) {
   return (
