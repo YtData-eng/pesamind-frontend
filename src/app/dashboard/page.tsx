@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-import { API } from '../../lib/config';
+import { API, APP_URL } from '../../lib/config';
+
 
 function Nav() {
   const router = useRouter();

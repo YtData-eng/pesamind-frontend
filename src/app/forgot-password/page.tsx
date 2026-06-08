@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { API, APP_URL } from '../../lib/config';
 
-import { API } from '../../lib/config';
 
 export default function ForgotPassword() {
   const router = useRouter();

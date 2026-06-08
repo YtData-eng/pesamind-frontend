@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { API } from '../lib/config';
+import { useRouter } from 'next/navigation'
+import { API, APP_URL } from '../../lib/config';
+
 
 function Logo() {
   return (

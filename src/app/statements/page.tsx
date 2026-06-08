@@ -2,7 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { API } from '../../lib/config';
+import { API, APP_URL } from '../../lib/config';
+
 
 export default function Statements() {
   const router = useRouter();
