@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API = 'https://pesamind-backend.onrender.com/api';
+const API = 'https://api.pesamind.online/api';
 
 function Logo({ size = 40 }: { size?: number }) {
   return (

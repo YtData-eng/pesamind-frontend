@@ -26,7 +26,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirm_password) { setError('Passwords do not match'); return; }
     setLoading(true);
     try {
-      const res = await fetch(`https://pesamind-backend.onrender.com/api/auth/register`, {
+      const res = await fetch(`https://api.pesamind.online/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // ─── Updated fetch body with ref code ───────────────
