@@ -34,12 +34,12 @@ export default function Home() {
     <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
 
       {/* Navbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="landing-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => router.push('/')}>
           <Logo size={36} />
           <span style={{ fontWeight: 800, fontSize: '20px' }}>PesaMind</span>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div className="landing-nav-btns" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <button onClick={() => router.push('/pricing')} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>Pricing</button>
           <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
             🚀 Join Waitlist
@@ -50,7 +50,7 @@ export default function Home() {
       </div>
 
       {/* Hero */}
-      <div style={{ textAlign: 'center', padding: '100px 60px 60px' }}>
+      <div className="landing-hero" style={{ textAlign: 'center', padding: '100px 60px 60px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: '20px', padding: '6px 16px', fontSize: '13px', color: '#00E87A', fontWeight: 600, marginBottom: '24px' }}>
           🇰🇪 Built for Kenya · Powered by AI
         </div>
@@ -61,14 +61,14 @@ export default function Home() {
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)', maxWidth: '500px', margin: '0 auto 40px', lineHeight: 1.7 }}>
           Upload your M-Pesa statement and get instant AI-powered insights on your spending, budgets, and financial health score.
         </p>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        <div className="landing-hero-btns" style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
           <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '16px 40px', borderRadius: '12px', cursor: 'pointer', fontWeight: 800, fontSize: '16px' }}>Start for Free →</button>
           <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '16px 40px', borderRadius: '12px', cursor: 'pointer', fontWeight: 700, fontSize: '16px' }}>🚀 Join Waitlist</button>
         </div>
       </div>
 
       {/* Stats Bar */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '60px', padding: '40px 60px', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="landing-stats" style={{ display: 'flex', justifyContent: 'center', gap: '60px', padding: '40px 60px', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         {[
           { value: '1,953+', label: 'Transactions Analyzed' },
           { value: 'KSH 303K', label: 'Income Tracked' },
@@ -82,11 +82,11 @@ export default function Home() {
       </div>
 
       {/* Features */}
-      <div style={{ padding: '80px 60px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div className="landing-features" style={{ padding: '80px 60px', maxWidth: '1100px', margin: '0 auto' }}>
         <h2 style={{ textAlign: 'center', fontSize: '36px', fontWeight: 800, marginBottom: '48px' }}>
           Everything you need to <span style={{ color: '#00E87A' }}>take control</span>
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        <div className="landing-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
           {[
             { icon: '📊', title: 'Financial Dashboard', desc: 'See your income, expenses, savings rate and financial health score at a glance.' },
             { icon: '🤖', title: 'AI Insights', desc: 'Get personalized tips from AI that analyzes your M-Pesa spending patterns.' },
@@ -107,11 +107,11 @@ export default function Home() {
       </div>
 
       {/* How it works */}
-      <div style={{ padding: '60px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="landing-how" style={{ padding: '60px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <h2 style={{ textAlign: 'center', fontSize: '36px', fontWeight: 800, marginBottom: '48px' }}>
           How it <span style={{ color: '#00E87A' }}>works</span>
         </h2>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', maxWidth: '900px', margin: '0 auto' }}>
+        <div className="landing-how-steps" style={{ display: 'flex', justifyContent: 'center', gap: '40px', maxWidth: '900px', margin: '0 auto' }}>
           {[
             { step: '01', title: 'Download Statement', desc: 'Get your M-Pesa PDF from MySafaricom app or *234#' },
             { step: '02', title: 'Upload to PesaMind', desc: 'Drag and drop your PDF — we unlock and parse it automatically' },
@@ -127,13 +127,13 @@ export default function Home() {
       </div>
 
       {/* CTA */}
-      <div style={{ textAlign: 'center', padding: '80px 60px' }}>
+      <div className="landing-cta" style={{ textAlign: 'center', padding: '80px 60px' }}>
         <div style={{ display: 'inline-block', marginBottom: '24px' }}>
           <Logo size={56} />
         </div>
         <h2 style={{ fontSize: '40px', fontWeight: 800, marginBottom: '16px' }}>Ready to take control?</h2>
         <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '32px', fontSize: '16px' }}>Join Kenyans managing their M-Pesa finances smarter.</p>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        <div className="landing-hero-btns" style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
           <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '16px 48px', borderRadius: '12px', cursor: 'pointer', fontWeight: 800, fontSize: '18px' }}>
             Get Started Free →
           </button>
@@ -144,7 +144,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="landing-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Logo size={24} />
           <span style={{ fontWeight: 700 }}>PesaMind</span>
