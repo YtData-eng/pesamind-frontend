@@ -1,0 +1,71 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #050F09;
+  color: white;
+  font-family: system-ui, sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Prevent horizontal scroll */
+html, body { overflow-x: hidden; }
+
+/* Mobile responsive utilities */
+@media (max-width: 768px) {
+
+  /* Landing page */
+  .landing-nav { padding: 16px 20px !important; }
+  .landing-hero { padding: 60px 20px 40px !important; }
+  .landing-hero h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+  .landing-hero p { font-size: 15px !important; }
+  .landing-hero-btns { flex-direction: column !important; gap: 12px !important; } /* ✅ fixed */
+  .landing-stats { gap: 24px !important; padding: 24px 20px !important; flex-wrap: wrap !important; }
+  .landing-features { padding: 40px 20px !important; }
+  .landing-features-grid { grid-template-columns: 1fr !important; }
+  .landing-how { padding: 40px 20px !important; flex-direction: column !important; }
+  .landing-cta { padding: 48px 20px !important; }
+  .landing-footer { padding: 20px !important; flex-direction: column !important; gap: 16px !important; text-align: center !important; }
+
+  /* Nav bar */
+  .app-nav { overflow-x: auto !important; padding: 0 12px !important; -webkit-overflow-scrolling: touch; }
+  .app-nav::-webkit-scrollbar { display: none; }
+
+  /* Main content */
+  .main-pad { padding: 20px 16px !important; }
+
+  /* Dashboard grids */
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-2 { grid-template-columns: 1fr !important; }
+  .grid-health { grid-template-columns: 1fr !important; }
+  .grid-3 { grid-template-columns: 1fr !important; }
+
+  /* Tables - scroll horizontally */
+  .table-scroll { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+
+  /* Pricing */
+  .pricing-cards { flex-direction: column !important; padding: 20px !important; }
+
+  /* Fraud grid */
+  .fraud-grid { grid-template-columns: 1fr !important; }
+
+  /* Budgets grid */
+  .budgets-grid { grid-template-columns: 1fr !important; }
+
+  /* Referral grid */
+  .referral-grid { grid-template-columns: 1fr !important; }
+
+  /* Admin grid */
+  .admin-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Statements */
+  .statements-grid { grid-template-columns: 1fr !important; }
+
+  /* Waitlist */
+  .waitlist-stats { gap: 16px !important; flex-wrap: wrap !important; }
+}
+
+@media (max-width: 480px) {
+  .grid-4 { grid-template-columns: 1fr !important; }
+  .admin-grid { grid-template-columns: 1fr !important; }
+}

@@ -100,7 +100,7 @@ export default function Budgets() {
         </div>
 
         {/* Summary */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div className="budgets-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
           {[
             { label: 'Total Budget', value: `KSH ${totalBudget.toLocaleString()}`, color: '#00E87A' },
             { label: 'Total Spent', value: `KSH ${totalSpent.toLocaleString()}`, color: '#FF4D6D' },

@@ -130,7 +130,7 @@ export default function Fraud() {
         )}
 
         {/* Main Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+        <div className="fraud-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           {/* Fraud Alerts */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>🚨 Fraud Alerts ({alerts.length})</h3>

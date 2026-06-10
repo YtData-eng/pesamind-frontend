@@ -40,12 +40,12 @@ export default function Home() {
           <span style={{ fontWeight: 800, fontSize: '20px' }}>PesaMind</span>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button onClick={() => router.push('/pricing')} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>Pricing</button>
           <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
             🚀 Join Waitlist
           </button>
           <button onClick={() => router.push('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Sign In</button>
           <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>Get Started →</button>
-          <button onClick={() => router.push('/pricing')} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>Pricing</button>
         </div>
       </div>
 
@@ -152,6 +152,7 @@ export default function Home() {
         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>© 2026 PesaMind · Built for Kenya 🇰🇪</p>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <button onClick={() => router.push('/waitlist')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Waitlist</button>
+          <button onClick={() => router.push('/pricing')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Pricing</button>
           <button onClick={() => router.push('/login')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Sign In</button>
           <button onClick={() => router.push('/register')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px' }}>Register</button>
           <button onClick={handleFounderAccess} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '11px' }}>·</button>

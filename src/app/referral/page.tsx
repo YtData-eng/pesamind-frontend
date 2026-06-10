@@ -108,7 +108,7 @@ export default function Referral() {
         </div>
 
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div className="referral-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
           {[
             { label: 'Total Referrals', value: info?.referral_count || 0, color: '#00E87A', icon: '👥' },
             { label: 'Free Months Earned', value: info?.free_months || 0, color: '#7B5EA7', icon: '🎁' },

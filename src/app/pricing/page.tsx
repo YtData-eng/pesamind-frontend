@@ -116,7 +116,7 @@ export default function Pricing() {
     <div style={{ minHeight: '100vh', background: '#050F09', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
 
       {/* Nav */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="pricing-cards" style={{ display: 'flex', gap: '24px', justifyContent: 'center', padding: '20px 60px 60px', maxWidth: '900px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => router.push('/')}>
           <Logo size={32} />
           <span style={{ fontWeight: 800, fontSize: '18px' }}>PesaMind</span>

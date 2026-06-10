@@ -127,7 +127,7 @@ export default function Analytics() {
         </div>
 
         {/* Transaction Table */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
+        <div className="table-scroll" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
           {/* Header */}
           <div style={{ display: 'grid', gridTemplateColumns: '40px 130px 1fr 120px 120px 100px', gap: '16px', padding: '12px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             {['', 'Date', 'Description', 'Category', 'Amount', 'Type'].map((h, i) => (
