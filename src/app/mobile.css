@@ -13,6 +13,13 @@ html, body { overflow-x: hidden; }
 
 /* ── Mobile responsive ── */
 @media (max-width: 768px) {
+  .ref-stats { grid-template-columns: repeat(2,1fr) !important; }
+  .ref-grid { grid-template-columns: 1fr !important; }
+  .ref-how { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 480px) {
+  .ref-stats { grid-template-columns: 1fr !important; }
+
 
   /* Landing page */
   .landing-nav {
