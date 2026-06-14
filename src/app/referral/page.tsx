@@ -16,6 +16,7 @@ function Nav() {
     { href: '/analytics', label: '📈 Transactions' },
     { href: '/pricing', label: '⭐ Upgrade' },
     { href: '/referral', label: '🎁 Refer' },
+    { href: '/shield', label: '🛡️ Shield' },
   ];
   return (
     <div style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>

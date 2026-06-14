@@ -44,6 +44,9 @@ export default function Home() {
           <button onClick={() => router.push('/waitlist')} style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.3)', color: '#00E87A', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
             🚀 Join Waitlist
           </button>
+          <button onClick={() => router.push('/shield')} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#FF4D6D', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+  🛡️ Fraud Shield
+</button>
           <button onClick={() => router.push('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Sign In</button>
           <button onClick={() => router.push('/register')} style={{ background: '#00E87A', border: 'none', color: '#000', padding: '10px 24px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>Get Started →</button>
         </div>
